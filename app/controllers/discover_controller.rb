@@ -86,20 +86,22 @@ class DiscoverController < ApplicationController
       else
         products = if taxonomy.present?
           search_params = { size: RECOMMENDED_PRODUCTS_COUNT, taxonomy_id: taxonomy.id, include_taxonomy_descendants: true }
-          search_products(search_params)[:products].includes(ProductPresenter::ASSOCIATIONS_FOR_CARD)
+          search_products(search_params)[:products]
         else
-          all_top_products = Rails.cache.fetch("discover_all_top_products", expires_in: 1.day) do
-            products = []
+          all_top_product_ids = Rails.cache.fetch("discover_all_top_product_ids", expires_in: 1.day) do
+            product_ids = []
             Taxonomy.roots.each do |top_taxonomy|
               search_params = { size: RECOMMENDED_PRODUCTS_COUNT, taxonomy_id: top_taxonomy.id, include_taxonomy_descendants: true }
-              top_products = search_products(search_params)[:products].includes(ProductPresenter::ASSOCIATIONS_FOR_CARD)
-              products.concat(top_products)
+              top_products = search_products(search_params)[:products]
+              product_ids.concat(top_products.pluck(:id))
             end
-            products
+            product_ids
           end
 
-          all_top_products.sample(RECOMMENDED_PRODUCTS_COUNT)
+          Link.where(id: all_top_product_ids.sample(RECOMMENDED_PRODUCTS_COUNT))
         end
+
+        products = products.includes(ProductPresenter::ASSOCIATIONS_FOR_CARD)
 
         products.map do |product|
           ProductPresenter.card_for_web(
