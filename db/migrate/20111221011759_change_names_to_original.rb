@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ChangeNamesToOriginal < ActiveRecord::Migration
+class ChangeNamesToOriginal < ActiveRecord::Migration[7.1]
   def up
     Attachment.find_each do |attachment|
       puts attachment.id
