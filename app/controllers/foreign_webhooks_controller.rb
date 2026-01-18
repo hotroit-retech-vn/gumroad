@@ -87,6 +87,22 @@ class ForeignWebhooksController < ApplicationController
     head :ok
   end
 
+  # MoMo IPN (Instant Payment Notification) webhook
+  def momo
+    payload = params.to_unsafe_hash.except(:controller, :action).symbolize_keys
+    Rails.logger.info("[MoMo IPN] Received: #{payload.except(:signature).to_json}")
+
+    if MomoChargeProcessor.handle_momo_ipn(payload)
+      render json: { success: true }
+    else
+      render json: { success: false }, status: :bad_request
+    end
+  rescue StandardError => e
+    Rails.logger.error("[MoMo IPN] Error processing webhook: #{e.message}")
+    Bugsnag.notify(e)
+    render json: { success: false, error: e.message }, status: :internal_server_error
+  end
+
   private
     def validate_sns_webhook
       return if Aws::SNS::MessageVerifier.new.authentic?(request.raw_post)

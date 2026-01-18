@@ -39,10 +39,13 @@ export const LineItem = ({
 );
 
 export const LineItemResultEntry = ({ name, result }: { name: string; result: LineItemResult }) =>
-  result.success ? (
+  result.success && !("requires_action" in result) ? (
     <SuccessfulLineItemResultEntry name={name} result={result} />
   ) : (
-    <FailedLineItemResultEntry name={name} result={result} />
+    <FailedLineItemResultEntry
+      name={name}
+      result={"requires_action" in result ? { success: false, error_message: "Payment requires action" } : result}
+    />
   );
 
 const FailedLineItemResultEntry = ({ name, result }: { name: string; result: ErrorLineItemResult }) => {
@@ -299,6 +302,7 @@ export const Receipt = ({
               {results.some(
                 ({ result, item }) =>
                   result.success &&
+                  !("requires_action" in result) &&
                   result.non_formatted_price > 0 &&
                   !item.product.is_preorder &&
                   !item.product.free_trial,

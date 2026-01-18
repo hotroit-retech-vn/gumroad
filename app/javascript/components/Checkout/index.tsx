@@ -67,20 +67,20 @@ function formatPrice(price: number) {
 const nameOfSalesTaxForCountry = (countryCode: string) => {
   switch (countryCode) {
     case "US":
-      return "Sales tax";
+      return "Thuế bán hàng";
     case "CA":
-      return "Tax";
+      return "Thuế";
     case "AU":
     case "IN":
     case "NZ":
     case "SG":
       return "GST";
     case "MY":
-      return "Service tax";
+      return "Thuế dịch vụ";
     case "JP":
       return "CT";
     default:
-      return "VAT";
+      return "Thuế GTGT";
   }
 };
 
@@ -231,9 +231,9 @@ export const Checkout = ({
     <div className="mx-auto w-full max-w-product-page">
       <PageHeader
         className="border-none"
-        title="Checkout"
+        title="Thanh toán"
         actions={
-          isDesktop ? <NavigationButton href={cart.returnUrl ?? discoverUrl}>Continue shopping</NavigationButton> : null
+          isDesktop ? <NavigationButton href={cart.returnUrl ?? discoverUrl}>Tiếp tục mua sắm</NavigationButton> : null
         }
       />
       {isOpenTuple(cart.items, 1) ? (
@@ -260,11 +260,11 @@ export const Checkout = ({
                 <div className="grid gap-4 border-border p-4">
                   {state.surcharges.type === "loaded" ? (
                     <>
-                      <CartPriceItem title="Subtotal" price={formatPrice(subtotal)} />
-                      {tip ? <CartPriceItem title="Tip" price={formatPrice(tip)} /> : null}
+                      <CartPriceItem title="Tạm tính" price={formatPrice(subtotal)} />
+                      {tip ? <CartPriceItem title="Tiền tip" price={formatPrice(tip)} /> : null}
                       {state.surcharges.result.tax_included_cents ? (
                         <CartPriceItem
-                          title={`${nameOfSalesTaxForCountry(state.country)} (included)`}
+                          title={`${nameOfSalesTaxForCountry(state.country)} (đã bao gồm)`}
                           price={formatPrice(state.surcharges.result.tax_included_cents)}
                         />
                       ) : null}
@@ -276,7 +276,7 @@ export const Checkout = ({
                       ) : null}
                       {state.surcharges.result.shipping_rate_cents ? (
                         <CartPriceItem
-                          title="Shipping rate"
+                          title="Phí vận chuyển"
                           price={formatPrice(state.surcharges.result.shipping_rate_cents)}
                         />
                       ) : null}
@@ -285,19 +285,19 @@ export const Checkout = ({
                   {visibleDiscounts.length || discount > 0 ? (
                     <div className="grid grid-flow-col justify-between gap-4">
                       <h4 className="inline-flex flex-wrap gap-2">
-                        Discounts
+                        Giảm giá
                         {cart.items.some((item) => !!item.product.ppp_details && item.price !== 0) &&
                         !cart.rejectPppDiscount ? (
                           <WithTooltip
-                            tip="This discount is applied based on the cost of living in your country."
+                            tip="Giảm giá này được áp dụng dựa trên chi phí sinh hoạt ở quốc gia của bạn."
                             position="top"
                           >
                             <Pill asChild size="small" className="font-inherit cursor-pointer">
                               <button
                                 onClick={() => updateCart({ rejectPppDiscount: true })}
-                                aria-label="Purchasing power parity discount"
+                                aria-label="Giảm giá ngang giá sức mua"
                               >
-                                Purchasing power parity discount
+                                Giảm giá ngang giá sức mua
                                 <Icon name="x" className="ml-2" />
                               </button>
                             </Pill>
@@ -311,7 +311,7 @@ export const Checkout = ({
                               updateCart({ discountCodes: cart.discountCodes.filter((item) => item !== code) })
                             }
                             key={code.code}
-                            aria-label="Discount code"
+                            aria-label="Mã giảm giá"
                           >
                             {code.code}
                             <Icon name="x" className="ml-2" />
@@ -330,14 +330,14 @@ export const Checkout = ({
                       }}
                     >
                       <input
-                        placeholder="Discount code"
+                        placeholder="Mã giảm giá"
                         value={newDiscountCode}
                         className="flex-1"
                         disabled={discountInputDisabled}
                         onChange={(e) => setNewDiscountCode(e.target.value)}
                       />
                       <Button type="submit" disabled={discountInputDisabled}>
-                        Apply
+                        Áp dụng
                       </Button>
                     </form>
                   ) : null}
@@ -345,23 +345,23 @@ export const Checkout = ({
                 {total != null ? (
                   <>
                     <footer className="grid gap-4 border-t border-border p-4">
-                      <CartPriceItem title="Total" price={formatPrice(total)} large />
+                      <CartPriceItem title="Tổng cộng" price={formatPrice(total)} large />
                     </footer>
                     {commissionCompletionTotal > 0 || futureInstallmentsWithoutTipsTotal > 0 ? (
                       <div className="grid gap-4 border-t border-border p-4">
                         <CartPriceItem
-                          title="Payment today"
+                          title="Thanh toán hôm nay"
                           price={formatPrice(total - commissionCompletionTotal - futureInstallmentsWithoutTipsTotal)}
                         />
                         {commissionCompletionTotal > 0 ? (
                           <CartPriceItem
-                            title="Payment after completion"
+                            title="Thanh toán sau khi hoàn thành"
                             price={formatPrice(commissionCompletionTotal)}
                           />
                         ) : null}
                         {futureInstallmentsWithoutTipsTotal > 0 ? (
                           <CartPriceItem
-                            title="Future installments"
+                            title="Các đợt thanh toán tương lai"
                             price={formatPrice(futureInstallmentsWithoutTipsTotal)}
                           />
                         ) : null}
@@ -372,7 +372,7 @@ export const Checkout = ({
               </CartItemList>
               {recommendedProducts && recommendedProducts.length > 0 ? (
                 <section className="flex flex-col gap-4">
-                  <h2>Customers who bought {cart.items.length === 1 ? "this item" : "these items"} also bought</h2>
+                  <h2>Khách hàng đã mua {cart.items.length === 1 ? "sản phẩm này" : "các sản phẩm này"} cũng mua</h2>
                   <ProductCardGrid narrow>
                     {recommendedProducts.map((product, idx) => (
                       // All of this grid is off-screen. so we just eager load the first image
@@ -383,18 +383,18 @@ export const Checkout = ({
               ) : null}
             </div>
             <PaymentForm />
-            {!isDesktop && <NavigationButton href={cart.returnUrl ?? discoverUrl}>Continue shopping</NavigationButton>}
+            {!isDesktop && <NavigationButton href={cart.returnUrl ?? discoverUrl}>Tiếp tục mua sắm</NavigationButton>}
           </div>
         </div>
       ) : (
         <div className="p-4 md:p-8">
           <Placeholder>
             <PlaceholderImage src={placeholder} />
-            <h3>You haven't added anything...yet!</h3>
-            <p>Once you do, it'll show up here so you can complete your purchases.</p>
-            <Button asChild color="accent">
-              <a href={discoverUrl}>Discover products</a>
-            </Button>
+            <h3>Bạn chưa thêm gì...vẫn chưa!</h3>
+            <p>Khi bạn thêm sản phẩm, nó sẽ hiển thị ở đây để bạn hoàn tất mua hàng.</p>
+            <a className="button accent" href={discoverUrl}>
+              Khám phá sản phẩm
+            </a>
           </Placeholder>
         </div>
       )}
@@ -459,7 +459,7 @@ const CartItemComponent = ({
     if (isPWYW && (selection.price.value === null || selection.price.value < priceCents))
       return setSelection({ ...selection, price: { ...selection.price, error: true } });
     if (selection.optionId !== item.option_id && findCartItem(cart, item.product.permalink, selection.optionId))
-      return setError("You already have this item in your cart.");
+      return setError("Bạn đã có sản phẩm này trong giỏ hàng.");
     const index = cart.items.findIndex((i) => i === item);
     const items = cart.items.slice();
     items[index] = {
@@ -484,7 +484,7 @@ const CartItemComponent = ({
       extra={
         item.product.bundle_products.length > 0 ? (
           <div className="flex flex-col gap-3">
-            <h4>This bundle contains...</h4>
+            <h4>Gói này bao gồm...</h4>
             <CartItemList className="overflow-hidden">
               {item.product.bundle_products.map((bundleProduct) => (
                 <CartItem key={bundleProduct.product_id} isBundleItem>
@@ -493,7 +493,7 @@ const CartItemComponent = ({
                       <Thumbnail url={bundleProduct.thumbnail_url} nativeType={bundleProduct.native_type} />
                     </a>
                   </CartItemMedia>
-                  <span className="sr-only">Qty: {bundleProduct.quantity || item.quantity}</span>
+                  <span className="sr-only">SL: {bundleProduct.quantity || item.quantity}</span>
                   <CartItemMain className="h-20">
                     <CartItemTitle className="line-clamp-1">{bundleProduct.name}</CartItemTitle>
                     {bundleProduct.variant ? (
@@ -537,7 +537,7 @@ const CartItemComponent = ({
           ) : null}
           {item.call_start_time ? (
             <span>
-              <strong>Time:</strong> {formatCallDate(new Date(item.call_start_time), { date: { hideYear: true } })}
+              <strong>Thời gian:</strong> {formatCallDate(new Date(item.call_start_time), { date: { hideYear: true } })}
             </span>
           ) : null}
           <CartItemActions>
@@ -548,7 +548,7 @@ const CartItemComponent = ({
             item.product.installment_plan ||
             isPWYW ? (
               <Popover
-                trigger={<Button className="h-8 w-15 !p-0 !text-xs">Edit</Button>}
+                trigger={<Button className="h-8 w-15 !p-0 !text-xs">Sửa</Button>}
                 open={editPopoverOpen}
                 onToggle={setEditPopoverOpen}
               >
@@ -565,7 +565,7 @@ const CartItemComponent = ({
                   />
                   {error ? <Alert variant="danger">{error}</Alert> : null}
                   <Button color="accent" onClick={saveChanges}>
-                    Save changes
+                    Lưu thay đổi
                   </Button>
                 </div>
               </Popover>
@@ -588,7 +588,7 @@ const CartItemComponent = ({
                 });
               }}
             >
-              Remove
+              Xóa
             </Button>
           </CartItemActions>
         </CartItemFooter>
@@ -603,16 +603,16 @@ const CartItemComponent = ({
               {item.product.free_trial.duration.amount === 1
                 ? `one ${item.product.free_trial.duration.unit}`
                 : `${item.product.free_trial.duration.amount} ${item.product.free_trial.duration.unit}s`}{" "}
-              free
+              miễn phí
             </span>
             {item.recurrence ? (
               <span className="text-sm">
-                {formatAmountPerRecurrence(item.recurrence, formatPrice(convertToUSD(item, discount.price)))} after
+                {formatAmountPerRecurrence(item.recurrence, formatPrice(convertToUSD(item, discount.price)))} sau đó
               </span>
             ) : null}
           </>
         ) : item.pay_in_installments && item.product.installment_plan ? (
-          <span className="text-sm">in {item.product.installment_plan.number_of_installments} installments</span>
+          <span className="text-sm">chia làm {item.product.installment_plan.number_of_installments} đợt</span>
         ) : item.recurrence ? (
           isGift ? (
             <span className="text-sm">{recurrenceDurationLabels[item.recurrence]}</span>

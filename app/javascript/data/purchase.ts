@@ -29,7 +29,14 @@ type LineItemPaymentErrorFull = {
 };
 export type ErrorLineItemResult = LineItemPaymentErrorFull | LineItemPaymentErrorShort;
 
-export type LineItemResult = SuccessfulLineItemResult | ErrorLineItemResult;
+export type PurchaseRequiresRedirectResponse = {
+  success: true;
+  requires_action: true;
+  redirect_url: string;
+  payment_method_type: "momo";
+};
+
+export type LineItemResult = SuccessfulLineItemResult | ErrorLineItemResult | PurchaseRequiresRedirectResponse;
 
 export type LineItemUid = string;
 type VariantOptionId = string;
@@ -300,6 +307,10 @@ export const createPurchasesRequestData = (
       if (paymentParams.type === "paypal-braintree") {
         data.braintree_transient_customer_store_key = paymentParams.braintree_transient_customer_store_key || "";
         data.braintree_device_data = paymentParams.braintree_device_data ?? "";
+      }
+
+      if (paymentParams.type === "momo") {
+        data.momo_payment = true;
       }
     } else {
       data.stripe_error = {

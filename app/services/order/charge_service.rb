@@ -258,15 +258,24 @@ class Order::ChargeService
       if purchase.errors.present? || purchase.failed?
         charge_responses[line_item_uid] ||= error_response(purchase.errors.first&.message || "Sorry, something went wrong. Please try again.", purchase:)
       elsif charge_intent&.requires_action?
-        charge_responses[line_item_uid] ||= {
-          success: true,
-          requires_card_action: true,
-          client_secret: charge_intent.client_secret,
-          order: {
-            id: order.external_id,
-            stripe_connect_account_id: order.charges.last.merchant_account.is_a_stripe_connect_account? ? order.charges.last.merchant_account.charge_processor_merchant_id : nil
+        if charge_intent.is_a?(MomoChargeIntent)
+          charge_responses[line_item_uid] ||= {
+            success: true,
+            requires_action: true,
+            redirect_url: charge_intent.redirect_url,
+            payment_method_type: "momo"
           }
-        }
+        else
+          charge_responses[line_item_uid] ||= {
+            success: true,
+            requires_card_action: true,
+            client_secret: charge_intent.client_secret,
+            order: {
+              id: order.external_id,
+              stripe_connect_account_id: order.charges.last.merchant_account.is_a_stripe_connect_account? ? order.charges.last.merchant_account.charge_processor_merchant_id : nil
+            }
+          }
+        end
       elsif setup_intent&.requires_action?
         charge_responses[line_item_uid] ||= {
           success: true,

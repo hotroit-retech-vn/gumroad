@@ -6,6 +6,19 @@ class HomeController < ApplicationController
   before_action :set_meta_data
   before_action :set_layout_and_title
 
+  def about
+    # Fetch root taxonomies (level 1 categories)
+    @taxonomies = Taxonomy.where(parent_id: nil).where.not(slug: "other").limit(6)
+
+    # Fetch featured products (alive, with taxonomy, ordered by recent updates)
+    @featured_products = Link.alive
+                             .joins(:taxonomy)
+                             .includes(:user, :thumbnail, :asset_previews)
+                             .where.not(draft: true)
+                             .order(updated_at: :desc)
+                             .limit(8)
+  end
+
   private
     def set_layout_and_title
       @hide_layouts = true
@@ -16,13 +29,13 @@ class HomeController < ApplicationController
       @meta_data = {
         "about" => {
           url: :about_url,
-          title: "Earn your first dollar online with Gumroad",
-          description: "Start selling what you know, see what sticks, and get paid. Simple and effective."
+          title: "AI Marketplace - Sàn giao dịch AI số 1 Việt Nam",
+          description: "Khám phá, mua bán các sản phẩm AI: n8n workflows, prompts, khóa học, API keys và nhiều hơn nữa."
         },
         "features" => {
           url: :features_url,
-          title: "Gumroad features: Simple and powerful e-commerce tools",
-          description: "Sell books, memberships, courses, and more with Gumroad's simple e-commerce tools. Everything you need to grow your audience."
+          title: "Tính năng - Công cụ e-commerce đơn giản và mạnh mẽ",
+          description: "Bán sách, khóa học, membership và nhiều hơn với công cụ e-commerce của Gumroad."
         },
         "hackathon" => {
           url: :hackathon_url,
@@ -31,23 +44,23 @@ class HomeController < ApplicationController
         },
         "pricing" => {
           url: :pricing_url,
-          title: "Gumroad pricing: 10% flat fee",
-          description: "No monthly fees, just a simple 10% cut per sale. Gumroad's pricing is transparent and creator-friendly."
+          title: "Bảng giá - Phí 10% cho mỗi giao dịch",
+          description: "Không phí hàng tháng, chỉ 10% cho mỗi giao dịch. Bảng giá minh bạch và thân thiện với người bán."
         },
         "privacy" => {
           url: :privacy_url,
-          title: "Gumroad privacy policy: how we protect your data",
-          description: "Learn how Gumroad collects, uses, and protects your personal information. Your privacy matters to us."
+          title: "Chính sách bảo mật",
+          description: "Tìm hiểu cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân của bạn."
         },
         "prohibited" => {
           url: :prohibited_url,
-          title: "Prohibited products on Gumroad",
-          description: "Understand what products and activities are not allowed on Gumroad to comply with our policies."
+          title: "Sản phẩm bị cấm",
+          description: "Tìm hiểu những sản phẩm và hoạt động không được phép trên nền tảng."
         },
         "terms" => {
           url: :terms_url,
-          title: "Gumroad terms of service",
-          description: "Review the rules and guidelines for using Gumroad's services. Stay informed and compliant."
+          title: "Điều khoản dịch vụ",
+          description: "Xem các quy tắc và hướng dẫn sử dụng dịch vụ của chúng tôi."
         },
         "small_bets" => {
           url: :small_bets_url,

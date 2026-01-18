@@ -19,7 +19,7 @@ import { useRunOnce } from "$app/components/useRunOnce";
 
 enableMapSet();
 
-export type PaymentMethodType = "paypal" | "stripePaymentRequest" | "card";
+export type PaymentMethodType = "paypal" | "stripePaymentRequest" | "card" | "momo";
 export type PaymentMethod = { type: PaymentMethodType; button: React.ReactElement };
 
 export type Product = {
@@ -33,6 +33,7 @@ export type Product = {
   customFields: CustomFieldDescriptor[];
   bundleProductCustomFields: { product: { id: string; name: string }; customFields: CustomFieldDescriptor[] }[];
   supportsPaypal: "native" | "braintree" | null;
+  supportsMomo: boolean;
   testPurchase: boolean;
   requirePayment: boolean;
   hasFreeTrial: boolean;

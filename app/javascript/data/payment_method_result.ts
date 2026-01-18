@@ -13,6 +13,7 @@ import {
   ReusablePaymentRequestPaymentMethodParams,
   StripeErrorParams,
   AnyPayPalMethodParams,
+  MomoPaymentMethodParams,
 } from "$app/data/payment_method_params";
 import { preparePaypalPaymentMethodData, PayPalNativeResultInfo } from "$app/data/paypal_payment_method_data";
 
@@ -42,11 +43,13 @@ export type NewPayPalNativeSelectedPaymentMethod = {
   info: PayPalNativeResultInfo;
   keepOnFile: null;
 };
+export type NewMomoSelectedPaymentMethod = { type: "momo" };
 export type SelectedPaymentMethod =
   | SavedSelectedPaymentMethod
   | NewCardSelectedPaymentMethod
   | NewPayPalBraintreeSelectedPaymentMethod
-  | NewPayPalNativeSelectedPaymentMethod;
+  | NewPayPalNativeSelectedPaymentMethod
+  | NewMomoSelectedPaymentMethod;
 type SavedPaymentMethodResult = { type: "saved" };
 type OneOffNewCardPaymentMethodResult = {
   type: "new";
@@ -96,13 +99,24 @@ type ReusablePaymentRequestPaymentMethodResult = {
     | { type: "error"; cardParams: StripeErrorParams };
 };
 
+export type MomoPaymentMethodResult = {
+  type: "new";
+  cardParamsResult: {
+    type: "momo";
+    cardParams: MomoPaymentMethodParams;
+    keepOnFile: null;
+  };
+};
+
 export type AnyPaymentMethodResult =
   | SavedPaymentMethodResult
   | PayPalPaymentMethodResult
   | OneOffNewCardPaymentMethodResult
   | ReusableNewCardPaymentMethodResult
+  | OneOffNewCardPaymentMethodResult
   | OneOffPaymentRequestPaymentMethodResult
-  | ReusablePaymentRequestPaymentMethodResult;
+  | ReusablePaymentRequestPaymentMethodResult
+  | MomoPaymentMethodResult;
 
 // FIXME: overloads will not properly type the cases where an argument is a union
 // see https://github.com/microsoft/TypeScript/issues/33912
@@ -115,17 +129,38 @@ export async function getPaymentMethodResult(
 export async function getPaymentMethodResult(
   selected: NewCardSelectedPaymentMethod,
 ): Promise<OneOffNewCardPaymentMethodResult>;
+export async function getPaymentMethodResult(selected: NewMomoSelectedPaymentMethod): Promise<MomoPaymentMethodResult>;
 // catch-all
 export async function getPaymentMethodResult(
   selected: SelectedPaymentMethod,
-): Promise<SavedPaymentMethodResult | PayPalPaymentMethodResult | OneOffNewCardPaymentMethodResult>;
+): Promise<
+  | SavedPaymentMethodResult
+  | PayPalPaymentMethodResult
+  | OneOffNewCardPaymentMethodResult
+  | MomoPaymentMethodResult
+>;
 
 export async function getPaymentMethodResult(
   selected: SelectedPaymentMethod,
-): Promise<SavedPaymentMethodResult | PayPalPaymentMethodResult | OneOffNewCardPaymentMethodResult> {
+): Promise<
+  | SavedPaymentMethodResult
+  | PayPalPaymentMethodResult
+  | OneOffNewCardPaymentMethodResult
+  | MomoPaymentMethodResult
+> {
   switch (selected.type) {
     case "saved": {
       return { type: "saved" };
+    }
+    case "momo": {
+      return {
+        type: "new",
+        cardParamsResult: {
+          type: "momo",
+          cardParams: { status: "success", type: "momo", reusable: false },
+          keepOnFile: null,
+        },
+      };
     }
     case "paypal-braintree": {
       const cardParams = await prepareBraintreePaymentMethodData({
@@ -204,16 +239,30 @@ export async function getReusablePaymentMethodResult(
   selected: NewCardSelectedPaymentMethod,
   options: ReusableOptions,
 ): Promise<ReusableNewCardPaymentMethodResult>;
+export async function getReusablePaymentMethodResult(
+  selected: NewMomoSelectedPaymentMethod,
+  options: ReusableOptions,
+): Promise<MomoPaymentMethodResult>;
 // catch-all
 export async function getReusablePaymentMethodResult(
   selected: SelectedPaymentMethod,
   { products }: ReusableOptions,
-): Promise<SavedPaymentMethodResult | PayPalPaymentMethodResult | ReusableNewCardPaymentMethodResult>;
+): Promise<
+  | SavedPaymentMethodResult
+  | PayPalPaymentMethodResult
+  | ReusableNewCardPaymentMethodResult
+  | MomoPaymentMethodResult
+>;
 
 export async function getReusablePaymentMethodResult(
   selected: SelectedPaymentMethod,
   { products }: ReusableOptions,
-): Promise<SavedPaymentMethodResult | PayPalPaymentMethodResult | ReusableNewCardPaymentMethodResult> {
+): Promise<
+  | SavedPaymentMethodResult
+  | PayPalPaymentMethodResult
+  | ReusableNewCardPaymentMethodResult
+  | MomoPaymentMethodResult
+> {
   const data = await getPaymentMethodResult(selected);
 
   switch (data.type) {
@@ -226,6 +275,8 @@ export async function getReusablePaymentMethodResult(
         return { type: "new", cardParamsResult: data.cardParamsResult };
       } else if (data.cardParamsResult.type === "paypal") {
         // PayPal token should already be reusable by now
+        return { type: "new", cardParamsResult: data.cardParamsResult };
+      } else if (data.cardParamsResult.type === "momo") {
         return { type: "new", cardParamsResult: data.cardParamsResult };
       }
       const { cardParamsResult } = data;

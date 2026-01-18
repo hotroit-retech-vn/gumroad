@@ -952,6 +952,7 @@ Rails.application.routes.draw do
     post "/sns-aws-config-webhook", to: "foreign_webhooks#sns_aws_config"
     post "/grmc-webhook", to: "foreign_webhooks#grmc"
     post "/resend-webhook", to: "foreign_webhooks#resend"
+    post "/momo-webhook", to: "foreign_webhooks#momo"
 
     # secure redirect
     get "/secure_url_redirect", to: "secure_redirect#new", as: :secure_url_redirect
@@ -1123,6 +1124,7 @@ Rails.application.routes.draw do
     namespace :upsells do
       resources :products, only: [:index, :show]
     end
+    get "momo/complete", to: "momo#complete"
   end
 
   get "/(*path)", to: "application#e404_page" unless Rails.env.development?

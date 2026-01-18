@@ -50,6 +50,7 @@ type Props = {
     require_shipping: boolean;
     custom_fields: CustomFieldDescriptor[];
     supports_paypal: "native" | "braintree" | null;
+    supports_momo: boolean;
     creator: Creator;
     currency_code: CurrencyCode;
     options: Option[];
@@ -199,6 +200,7 @@ const SubscriptionManager = ({
     customFields: [], // Custom fields were already collected during original purchase
     bundleProductCustomFields: [],
     supportsPaypal: product.supports_paypal,
+    supportsMomo: product.supports_momo,
     testPurchase: subscription.is_test,
     requirePayment,
     subscription_id: subscription.id,

@@ -13,10 +13,12 @@ module Product::Recommendations
     reasons = {
       alive: alive?,
       not_archived: !archived?,
-      reviews_displayed: display_product_reviews?,
+      # reviews_displayed: display_product_reviews?,
       not_sold_out: max_purchase_count.present? ? sales_count_for_inventory < max_purchase_count : true,
       taxonomy_filled: taxonomy.present?,
-      sale_made: sales.counts_towards_volume.exists?,
+      # TEMPORARILY DISABLED: sale_made requirement
+      # sale_made: sales.counts_towards_volume.exists?,
+      # sale_made: true,
     }
 
     user.recommendable_reasons.each do |reason, value|

@@ -60,7 +60,14 @@ export type ReusablePayPalNativePaymentMethodParams = {
 export type AnyPayPalMethodParams =
   | ReusablePayPalBraintreePaymentMethodParams
   | ReusablePayPalNativePaymentMethodParams
+  | ReusablePayPalNativePaymentMethodParams
   | PayPalNativePaymentMethodParams;
+
+export type MomoPaymentMethodParams = {
+  status: "success";
+  type: "momo";
+  reusable: false;
+};
 
 export type StripeErrorParams = { status: "error"; stripe_error: StripeError };
 
@@ -69,7 +76,8 @@ export type AnyPaymentMethodParams =
   | ReusableCardPaymentMethodParams
   | PaymentRequestPaymentMethodParams
   | ReusablePaymentRequestPaymentMethodParams
-  | AnyPayPalMethodParams;
+  | AnyPayPalMethodParams
+  | MomoPaymentMethodParams;
 
 // We should be able to change `AnyPaymentMethodParams` representation on the frontend without making any backend changes
 // Since `AnyPaymentMethodParams` is being used to construct query params for the request to save the payment method,

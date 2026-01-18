@@ -9,6 +9,7 @@ import {
   ConfirmedPurchaseResponse,
   OfferCodes,
   createPurchasesRequestData,
+  PurchaseRequiresRedirectResponse,
 } from "$app/data/purchase";
 import { request, ResponseError } from "$app/utils/request";
 import { getConnectedAccountStripeInstance, getStripeInstance } from "$app/utils/stripe_loader";
@@ -29,7 +30,8 @@ type LineItemResponse =
   | PurchaseErrorResponse
   | ConfirmedPurchaseResponse
   | OrderRequiresCardActionResponse
-  | OrderRequiresCardSetupResponse;
+  | OrderRequiresCardSetupResponse
+  | PurchaseRequiresRedirectResponse;
 
 type OrderSuccessResponse = {
   success: true;
@@ -59,6 +61,22 @@ export const startOrderCreation = async (requestData: StartCartPurchaseRequestPa
         (lineItem): lineItem is OrderRequiresCardSetupResponse | OrderRequiresCardActionResponse =>
           doesLineItemRequireSCA(lineItem),
       ) ?? null;
+    const lineItemRequiringRedirect =
+      Object.values(response.line_items).find(
+        (lineItem): lineItem is PurchaseRequiresRedirectResponse =>
+          lineItem.success && "requires_action" in lineItem && "redirect_url" in lineItem,
+      ) ?? null;
+
+    if (lineItemRequiringRedirect) {
+      window.location.href = lineItemRequiringRedirect.redirect_url;
+      // Return a dummy result while redirecting
+      return {
+        lineItems: {},
+        canBuyerSignUp: false,
+        offerCodes: [],
+      };
+    }
+
     if (lineItemRequiringSCA) {
       const orderId = lineItemRequiringSCA.order.id;
       const clientSecret = lineItemRequiringSCA.client_secret;

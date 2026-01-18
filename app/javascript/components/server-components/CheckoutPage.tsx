@@ -318,6 +318,7 @@ export const CheckoutPage = ({
         creator: item.product.creator,
         requireShipping: item.product.require_shipping,
         supportsPaypal: item.product.supports_paypal,
+        supportsMomo: item.product.supports_momo,
         customFields: item.product.custom_fields,
         bundleProductCustomFields: item.product.bundle_products.map(({ product_id, name, custom_fields }) => ({
           product: { id: product_id, name },
@@ -474,19 +475,27 @@ export const CheckoutPage = ({
         if (
           results.length === 1 &&
           firstResult.success &&
+          !("requires_action" in firstResult) &&
           firstResult.content_url != null &&
           (!firstResult.bundle_products?.length || (user && !firstResult.test_purchase_notice))
         )
           redirectTo = "content-page";
         else if (
           !!user &&
-          results.every(({ result }) => result.success && result.content_url != null && !result.test_purchase_notice)
+          results.every(
+            ({ result }) =>
+              result.success && !("requires_action" in result) && result.content_url != null && !result.test_purchase_notice,
+          )
         )
           redirectTo = "library-page";
       }
 
       for (const { result, item } of results) {
-        if (!result.success) continue;
+        if (result.success && "requires_action" in result && result.redirect_url) {
+          window.location.href = result.redirect_url;
+          return;
+        }
+        if (!result.success || "requires_action" in result) continue;
         trackProductEvent(item.product.creator.id, {
           action: "purchased",
           seller_id: result.seller_id,
@@ -515,13 +524,20 @@ export const CheckoutPage = ({
         rejectPppDiscount: false,
       });
 
-      if (redirectTo === "content-page" && firstResult.success && firstResult.content_url) {
+      if (
+        redirectTo === "content-page" &&
+        firstResult.success &&
+        !("requires_action" in firstResult) &&
+        firstResult.content_url
+      ) {
         const contentUrl = new URL(firstResult.content_url);
         if (firstResult.native_type === "coffee") contentUrl.searchParams.set("purchase_email", state.email);
         else contentUrl.searchParams.set("receipt", "true");
         window.location.href = contentUrl.toString();
       } else if (redirectTo === "library-page") {
-        const purchases = results.flatMap(({ result }) => (result.success ? result.id : []));
+        const purchases = results.flatMap(({ result }) =>
+          result.success && !("requires_action" in result) ? result.id : [],
+        );
         const libraryUrl = new URL(Routes.library_url());
         for (const purchase of purchases) libraryUrl.searchParams.append("purchase_id", purchase);
         window.location.href = libraryUrl.toString();
@@ -616,9 +632,16 @@ export const CheckoutPage = ({
   return (
     <StateContext.Provider value={reducer}>
       {redirecting ? null : results ? (
-        (!user && results.every(({ result }) => result.success && result.content_url != null)) ||
+        (!user &&
+          results.every(
+            ({ result }) => result.success && !("requires_action" in result) && result.content_url != null,
+          )) ||
         results.some(
-          ({ result }) => result.success && result.bundle_products?.length && result.test_purchase_notice,
+          ({ result }) =>
+            result.success &&
+            !("requires_action" in result) &&
+            result.bundle_products?.length &&
+            result.test_purchase_notice,
         ) ? (
           <TemporaryLibrary results={results} canBuyerSignUp={canBuyerSignUp} />
         ) : (

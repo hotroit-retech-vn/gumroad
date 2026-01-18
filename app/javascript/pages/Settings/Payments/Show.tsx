@@ -27,6 +27,7 @@ import BankAccountSection, {
 } from "$app/components/Settings/PaymentsPage/BankAccountSection";
 import DebitCardSection from "$app/components/Settings/PaymentsPage/DebitCardSection";
 import PayPalConnectSection, { PayPalConnect } from "$app/components/Settings/PaymentsPage/PayPalConnectSection";
+import MoMoConnectSection, { MoMoConnect } from "$app/components/Settings/PaymentsPage/MoMoConnectSection";
 import PayPalEmailSection from "$app/components/Settings/PaymentsPage/PayPalEmailSection";
 import StripeConnectSection, { StripeConnect } from "$app/components/Settings/PaymentsPage/StripeConnectSection";
 import { Toggle } from "$app/components/Toggle";
@@ -55,6 +56,7 @@ type PaymentsPageProps = {
   paypal_address: string | null;
   stripe_connect: StripeConnect;
   paypal_connect: PayPalConnect;
+  momo_connect: MoMoConnect;
   fee_info: {
     card_fee_info_text: string;
     paypal_fee_info_text: string;
@@ -128,7 +130,9 @@ export default function PaymentsPage() {
           ? "bank"
           : props.bank_account_details.show_paypal
             ? "paypal"
-            : "bank",
+            : props.momo_connect.show_momo_connect
+              ? "momo"
+              : "bank",
   );
 
   const updatePayoutMethod = (newPayoutMethod: PayoutMethod) => {
@@ -981,6 +985,19 @@ export default function PaymentsPage() {
                   </div>
                 </Button>
               ) : null}
+              {props.momo_connect.show_momo_connect ? (
+                <Button
+                  role="radio"
+                  key="momo"
+                  aria-checked={selectedPayoutMethod === "momo"}
+                  onClick={() => updatePayoutMethod("momo")}
+                  disabled={props.is_form_disabled}
+                >
+                  <div>
+                    <h4>MoMo</h4>
+                  </div>
+                </Button>
+              ) : null}
               {props.user.country_code === "BR" ||
               props.user.can_connect_stripe ||
               props.stripe_connect.has_connected_stripe ? (
@@ -1032,8 +1049,13 @@ export default function PaymentsPage() {
                 errorFieldNames={errorFieldNames}
                 user={props.user}
               />
+            ) : selectedPayoutMethod === "momo" ? (
+              <MoMoConnectSection
+                momoConnect={props.momo_connect}
+                isFormDisabled={props.is_form_disabled}
+              />
             ) : null}
-            {selectedPayoutMethod !== "stripe" ? (
+            {selectedPayoutMethod !== "stripe" && selectedPayoutMethod !== "momo" ? (
               <AccountDetailsSection
                 user={props.user}
                 complianceInfo={form.data.user}

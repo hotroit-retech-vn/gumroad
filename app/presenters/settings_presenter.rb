@@ -202,6 +202,7 @@ class SettingsPresenter
       paypal_address: seller.payment_address,
       show_verification_section: seller.user_compliance_info_requests.requested.present? && seller.stripe_account.present? && Pundit.policy!(pundit_user, [:settings, :payments, seller]).update?,
       paypal_connect:,
+      momo_connect:,
       fee_info: fee_info(user_compliance_info),
       user: user_details(user_compliance_info),
       compliance_info: compliance_info_details(user_compliance_info),
@@ -381,6 +382,14 @@ class SettingsPresenter
         charge_processor_verified: paypal_merchant_account.present? && paypal_merchant_account.charge_processor_verified?,
         needs_email_confirmation: paypal_merchant_account.present? && paypal_merchant_account.meta.present? && paypal_merchant_account.meta["isEmailConfirmed"] == "false",
         paypal_disconnect_allowed: seller.paypal_disconnect_allowed?,
+      }
+    end
+
+    def momo_connect
+      {
+        show_momo_connect: seller.can_enable_momo?,
+        momo_enabled: seller.momo_payment_enabled?,
+        supported_countries: ["Vietnam"],
       }
     end
 

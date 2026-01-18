@@ -1374,9 +1374,16 @@ class Link < ApplicationRecord
       update_attribute(:moderated_by_iffy, false)
     end
 
-    def queue_iffy_ingest_job_if_unpublished_by_admin
-      return unless is_unpublished_by_admin? && !saved_change_to_is_unpublished_by_admin?
+    public
 
-      Iffy::Product::IngestJob.perform_async(id)
+    def supports_momo?
+      user.merchant_account("momo").present?
     end
+
+    protected
+      def queue_iffy_ingest_job_if_unpublished_by_admin
+        return unless is_unpublished_by_admin? && !saved_change_to_is_unpublished_by_admin?
+
+        Iffy::Product::IngestJob.perform_async(id)
+      end
 end

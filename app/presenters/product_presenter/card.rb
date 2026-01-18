@@ -13,6 +13,15 @@ class ProductPresenter::Card
     }
   ]
 
+  # Associations for profile page where seller info is already known
+  ASSOCIATIONS_WITHOUT_USER = [
+    :alive_prices, :product_review_stat, :variant_categories_alive,
+    {
+      thumbnail_alive: { file_attachment: { blob: { variant_records: { image_attachment: :blob } } } },
+      display_asset_previews: [:file_attachment, :file_blob],
+    }
+  ]
+
   attr_reader :product
 
   def initialize(product:)

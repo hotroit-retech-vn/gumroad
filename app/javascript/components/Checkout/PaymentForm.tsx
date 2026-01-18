@@ -34,6 +34,7 @@ import { asyncVoid } from "$app/utils/promise";
 import { Button } from "$app/components/Button";
 import { CreditCardInput, StripeElementsProvider } from "$app/components/Checkout/CreditCardInput";
 import { CustomFields } from "$app/components/Checkout/CustomFields";
+import { MomoPayment } from "./MomoPayment";
 import {
   addressFields,
   getErrors,
@@ -49,7 +50,6 @@ import {
   isTippingEnabled,
   getTotalPriceFromProducts,
 } from "$app/components/Checkout/payment";
-import { Icon } from "$app/components/Icons";
 import { LoadingSpinner } from "$app/components/LoadingSpinner";
 import { useLoggedInUser } from "$app/components/LoggedInUser";
 import { PriceInput } from "$app/components/PriceInput";
@@ -86,7 +86,7 @@ const CountryInput = () => {
   return (
     <fieldset>
       <legend>
-        <label htmlFor={`${uid}country`}>Country</label>
+        <label htmlFor={`${uid}country`}>Quốc gia</label>
       </legend>
       <select
         id={`${uid}country`}
@@ -121,18 +121,18 @@ const StateInput = () => {
   let states: string[] | null = null;
   switch (state.country) {
     case "US":
-      stateLabel = "State";
+      stateLabel = "Bang";
       states = state.usStates;
       break;
     case "PH":
-      stateLabel = "State";
+      stateLabel = "Bang";
       break;
     case "CA":
-      stateLabel = "Province";
+      stateLabel = "Tỉnh";
       states = state.caProvinces;
       break;
     default:
-      stateLabel = "County";
+      stateLabel = "Quận/Huyện";
       break;
   }
 
@@ -173,7 +173,7 @@ const ZipCodeInput = () => {
   const [state, dispatch] = useState();
   const uid = React.useId();
   const errors = getErrors(state);
-  const label = state.country === "US" || state.country === "PH" ? "ZIP code" : "Postal";
+  const label = state.country === "US" || state.country === "PH" ? "Mã bưu chính" : "Mã bưu chính";
 
   return (
     <fieldset className={cx({ danger: errors.has("zipCode") })}>
@@ -222,7 +222,7 @@ const EmailAddress = ({ card }: { card: boolean }) => {
         <fieldset className={cx({ danger: errors.has("email") })}>
           <legend>
             <label htmlFor={`${uid}email`}>
-              <h4>Email address</h4>
+              <h4>Địa chỉ email</h4>
             </label>
           </legend>
           <div className={cx("popover", { expanded: !!state.emailTypoSuggestion })} style={{ width: "100%" }}>
@@ -232,18 +232,18 @@ const EmailAddress = ({ card }: { card: boolean }) => {
               aria-invalid={errors.has("email")}
               value={state.email}
               onChange={(evt) => dispatch({ type: "set-value", email: evt.target.value.toLowerCase() })}
-              placeholder="Your email address"
+              placeholder="Địa chỉ email của bạn"
               disabled={(loggedInUser && loggedInUser.email !== null) || isProcessing(state)}
               onBlur={checkForEmailTypos}
             />
 
             {state.emailTypoSuggestion ? (
               <div className="dropdown grid gap-2">
-                <div>Did you mean {state.emailTypoSuggestion}?</div>
+                <div>Có phải ý bạn là {state.emailTypoSuggestion}?</div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button onClick={rejectEmailTypoSuggestion}>No</Button>
-                  <Button onClick={acceptEmailTypoSuggestion}>Yes</Button>
+                  <Button onClick={rejectEmailTypoSuggestion}>Không</Button>
+                  <Button onClick={acceptEmailTypoSuggestion}>Có</Button>
                 </div>
               </div>
             ) : null}
@@ -376,7 +376,7 @@ const SharedInputs = ({
       {showCountryInput || showVatIdInput ? (
         <div className={className}>
           <div className="flex grow flex-col gap-4">
-            <h4 className="font-bold">Contact information</h4>
+            <h4 className="font-bold">Thông tin liên hệ</h4>
             {showCountryInput ? (
               <div
                 style={{
@@ -413,7 +413,7 @@ const SharedInputs = ({
   );
 };
 
-const PaymentMethodRadio = ({
+export const PaymentMethodRadio = ({
   paymentMethod,
   children,
 }: {
@@ -439,7 +439,7 @@ const PaymentMethodRadio = ({
 const useFail = () => {
   const [_, dispatch] = useState();
   return () => {
-    showAlert("Sorry, something went wrong. You were not charged.", "error");
+    showAlert("Xin lỗi, đã xảy ra lỗi. Bạn chưa bị tính phí.", "error");
     dispatch({ type: "cancel" });
   };
 };
@@ -496,29 +496,29 @@ const CustomerDetails = ({ showCustomFields, className }: { showCustomFields: bo
         <div className={className}>
           <div className="flex grow flex-col gap-4">
             <h4 style={{ display: "flex", justifyContent: "space-between" }}>
-              Shipping information
+              Thông tin giao hàng
               {isLoggedIn ? (
                 <label>
                   <input
                     type="checkbox"
-                    title="Save shipping address to account"
+                    title="Lưu địa chỉ giao hàng vào tài khoản"
                     checked={state.saveAddress}
                     onChange={(e) => dispatch({ type: "set-value", saveAddress: e.target.checked })}
                     disabled={isProcessing(state)}
                   />
-                  Keep on file
+                  Lưu lại
                 </label>
               ) : null}
             </h4>
             <fieldset className={cx({ danger: errors.has("fullName") })}>
               <legend>
-                <label htmlFor={`${uid}fullName`}>Full name</label>
+                <label htmlFor={`${uid}fullName`}>Họ và tên</label>
               </legend>
               <input
                 id={`${uid}fullName`}
                 type="text"
                 aria-invalid={errors.has("fullName")}
-                placeholder="Full name"
+                placeholder="Họ và tên"
                 disabled={isProcessing(state)}
                 value={state.fullName}
                 onChange={(e) => dispatch({ type: "set-value", fullName: e.target.value })}
@@ -526,13 +526,13 @@ const CustomerDetails = ({ showCustomFields, className }: { showCustomFields: bo
             </fieldset>
             <fieldset className={cx({ danger: errors.has("address") })}>
               <legend>
-                <label htmlFor={`${uid}address`}>Street address</label>
+                <label htmlFor={`${uid}address`}>Địa chỉ</label>
               </legend>
               <input
                 id={`${uid}address`}
                 type="text"
                 aria-invalid={errors.has("address")}
-                placeholder="Street address"
+                placeholder="Địa chỉ"
                 disabled={isProcessing(state)}
                 value={state.address}
                 onChange={(e) => dispatch({ type: "set-value", address: e.target.value })}
@@ -541,13 +541,13 @@ const CustomerDetails = ({ showCustomFields, className }: { showCustomFields: bo
             <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "1fr", gap: "var(--spacer-2)" }}>
               <fieldset className={cx({ danger: errors.has("city") })}>
                 <legend>
-                  <label htmlFor={`${uid}city`}>City</label>
+                  <label htmlFor={`${uid}city`}>Thành phố</label>
                 </legend>
                 <input
                   id={`${uid}city`}
                   type="text"
                   aria-invalid={errors.has("city")}
-                  placeholder="City"
+                  placeholder="Thành phố"
                   disabled={isProcessing(state)}
                   value={state.city}
                   onChange={(e) => dispatch({ type: "set-value", city: e.target.value })}
@@ -563,24 +563,24 @@ const CustomerDetails = ({ showCustomFields, className }: { showCustomFields: bo
               {addressVerification.type === "verification-required" ? (
                 <>
                   <div>
-                    <strong>You entered this address:</strong>
+                    <strong>Bạn đã nhập địa chỉ này:</strong>
                     <br />
                     {addressVerification.formattedOriginalAddress}
                   </div>
                   <div>
-                    <strong>We recommend using this format:</strong>
+                    <strong>Chúng tôi khuyến nghị sử dụng định dạng này:</strong>
                     <br />
                     {addressVerification.formattedSuggestedAddress}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button onClick={verifyAddress}>No, continue</Button>
+                    <Button onClick={verifyAddress}>Không, tiếp tục</Button>
                     <Button
                       color="primary"
                       onClick={() =>
                         setAddressVerification({ type: "done", verifiedAddress: addressVerification.suggestedAddress })
                       }
                     >
-                      Yes, update
+                      Có, cập nhật
                     </Button>
                   </div>
                 </>
@@ -588,9 +588,9 @@ const CustomerDetails = ({ showCustomFields, className }: { showCustomFields: bo
                 <>
                   {addressVerification.type === "invalid"
                     ? addressVerification.message
-                    : "We are unable to verify your shipping address. Is your address correct?"}
-                  <Button onClick={() => dispatch({ type: "cancel" })}>No</Button>
-                  <Button onClick={verifyAddress}>Yes, it is</Button>
+                    : "Chúng tôi không thể xác minh địa chỉ giao hàng của bạn. Địa chỉ của bạn có chính xác không?"}
+                  <Button onClick={() => dispatch({ type: "cancel" })}>Không</Button>
+                  <Button onClick={verifyAddress}>Có, chính xác</Button>
                 </>
               )}
             </div>
@@ -605,7 +605,9 @@ const CustomerDetails = ({ showCustomFields, className }: { showCustomFields: bo
         </div>
       ) : null}
       {isTippingEnabled(state) ? <TipSelector className={className} /> : null}
-      {state.paymentMethod !== "paypal" && state.paymentMethod !== "stripePaymentRequest" ? (
+      {state.paymentMethod !== "paypal" &&
+      state.paymentMethod !== "stripePaymentRequest" &&
+      state.paymentMethod !== "momo" ? (
         <div className={className}>
           <Button
             color="primary"
@@ -634,6 +636,7 @@ const CreditCard = ({ card }: { card?: boolean }) => {
 
   const [cardError, setCardError] = React.useState(false);
 
+  /*
   React.useEffect(
     () =>
       dispatch({
@@ -652,6 +655,9 @@ const CreditCard = ({ card }: { card?: boolean }) => {
       }),
     [],
   );
+  */
+
+
 
   React.useEffect(() => {
     if (state.status.type !== "starting" || state.paymentMethod !== "card") return;
@@ -698,7 +704,7 @@ const CreditCard = ({ card }: { card?: boolean }) => {
         {!useSavedCard ? (
           <fieldset>
             <legend>
-              <label htmlFor={`${uid}nameOnCard`}>Name on card</label>
+              <label htmlFor={`${uid}nameOnCard`}>Tên trên thẻ</label>
               {isLoggedIn ? (
                 <label>
                   <input
@@ -707,7 +713,7 @@ const CreditCard = ({ card }: { card?: boolean }) => {
                     checked={keepOnFile}
                     onChange={(evt) => setKeepOnFile(evt.target.checked)}
                   />
-                  Save card
+                  Lưu thẻ
                 </label>
               ) : null}
             </legend>
@@ -750,7 +756,7 @@ const TipSelector = ({ className }: { className?: string | undefined }) => {
   return (
     <div className={className}>
       <div className="flex grow flex-col gap-4">
-        <h4 className="font-bold">Add a tip</h4>
+        <h4 className="font-bold">Thêm tiền tip</h4>
         {showPercentageOptions ? (
           <div
             role="radiogroup"
@@ -792,7 +798,7 @@ const TipSelector = ({ className }: { className?: string | undefined }) => {
               disabled={isProcessing(state)}
               style={{ justifyContent: "center" }}
             >
-              Other
+              Khác
             </Button>
           </div>
         ) : null}
@@ -1017,11 +1023,11 @@ const PayPal = ({ className }: { className?: string | undefined }) => {
     if (state.status.type !== "input") return;
     const errors = state.status.errors;
     const error = errors.has("email")
-      ? "Please provide a valid email address."
+      ? "Vui lòng cung cấp địa chỉ email hợp lệ."
       : errors.has("fullName")
-        ? "Please enter your full name."
+        ? "Vui lòng nhập họ và tên của bạn."
         : hasShipping(state) && addressFields.some((field) => errors.has(field))
-          ? "The shipping address you have entered is in an invalid format."
+          ? "Địa chỉ giao hàng bạn nhập không đúng định dạng."
           : null;
     if (error) showAlert(error, "error");
   }, [state.status.type]);
@@ -1125,7 +1131,7 @@ const StripePaymentRequest = ({ className }: { className?: string | undefined })
               shippingOptions: [
                 {
                   id: "standard",
-                  label: "Standard Shipping",
+                  label: "Giao hàng tiêu chuẩn",
                   detail: "",
                   amount: state.surcharges.result.shipping_rate_cents,
                 },
@@ -1224,13 +1230,26 @@ export const PaymentForm = ({
     }
   }, [state.status.type]);
 
+  React.useLayoutEffect(() => {
+    // If the current payment method is not available, switch to the first available one.
+    // This handles the case where "card" is default but we just removed it.
+    const currentMethodAvailable = state.availablePaymentMethods.some(m => m.type === state.paymentMethod);
+    if (!currentMethodAvailable && state.availablePaymentMethods.length > 0) {
+      const firstMethod = state.availablePaymentMethods[0];
+      if (firstMethod) {
+        dispatch({ type: "set-value", paymentMethod: firstMethod.type });
+      }
+    }
+  }, [state.paymentMethod, state.availablePaymentMethods, state.availablePaymentMethods.length]);
+
+
   return (
     <Card ref={paymentFormRef} className={className} aria-label="Payment form">
       {isTestPurchase ? (
         <CardContent>
           <Alert variant="info" className="grow">
-            This will be a test purchase as you are the creator of at least one of the products. Your payment method
-            will not be charged.
+            Đây sẽ là giao dịch thử nghiệm vì bạn là người tạo ít nhất một trong các sản phẩm. Phương thức thanh toán
+            của bạn sẽ không bị tính phí.
           </Alert>
         </CardContent>
       ) : null}
@@ -1239,14 +1258,15 @@ export const PaymentForm = ({
         <>
           <CardContent className={state.paymentMethod === "card" ? "border-b-0" : ""}>
             <div className="flex grow flex-col gap-4">
-              <h4 className="font-bold">Pay with</h4>
-              {state.availablePaymentMethods.length > 1 ? (
+              <h4 className="font-bold">Thanh toán bằng</h4>
+              {state.availablePaymentMethods.length >= 1 ? (
                 <Tabs variant="buttons" className="auto-cols-fr grid-flow-col">
                   {state.availablePaymentMethods.map((method) => (
                     <React.Fragment key={method.type}>{method.button}</React.Fragment>
                   ))}
                 </Tabs>
               ) : null}
+
             </div>
           </CardContent>
           {notice ? (
@@ -1266,6 +1286,7 @@ export const PaymentForm = ({
       {!isFreePurchase ? (
         <>
           <PayPal className="flex flex-wrap items-center justify-between gap-4 p-4" />
+          <MomoPayment className="flex flex-wrap items-center justify-between gap-4 p-4" />
           <StripeElementsProvider>
             <StripePaymentRequest className="flex flex-wrap items-center justify-between gap-4 p-4" />
           </StripeElementsProvider>

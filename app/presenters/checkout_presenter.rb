@@ -297,6 +297,7 @@ class CheckoutPresenter
         currency_code: product.price_currency_type.downcase,
         price_cents: product.price_cents,
         supports_paypal: supports_paypal(product),
+        supports_momo: supports_momo(product),
         custom_fields: product.custom_field_descriptors,
         exchange_rate: get_rate(product.price_currency_type).to_f / (is_currency_type_single_unit?(product.price_currency_type) ? 100 : 1),
         is_tiered_membership: product.is_tiered_membership,
@@ -323,6 +324,10 @@ class CheckoutPresenter
       elsif product.user.pay_with_paypal_enabled?
         "braintree"
       end
+    end
+
+    def supports_momo(product)
+      product.user.momo_payment_enabled?
     end
 
     def purchases

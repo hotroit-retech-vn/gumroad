@@ -53,7 +53,7 @@ export const TemporaryLibrary = ({ results, canBuyerSignUp }: { results: Result[
           ) : null}
           <ProductCardGrid>
             {results.flatMap(({ result, item }) =>
-              result.success && result.content_url ? (
+              result.success && !("requires_action" in result) && result.content_url ? (
                 result.bundle_products?.length ? (
                   result.bundle_products.map(({ id, content_url }) => {
                     const bundleProduct = item.product.bundle_products.find(({ product_id }) => product_id === id);

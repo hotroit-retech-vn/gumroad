@@ -77,6 +77,19 @@ class User
       merchant_account(PaypalChargeProcessor.charge_processor_id).present?
     end
 
+    # MoMo payments are enabled for users in Vietnam when MoMo is configured
+    def momo_payment_enabled?
+      return false unless GlobalConfig.get("MOMO_PARTNER_CODE").present?
+
+      country_code = alive_user_compliance_info&.country_code
+      country_code == "VN"
+    end
+
+    # Check if user can enable MoMo (available for Vietnam only)
+    def can_enable_momo?
+      GlobalConfig.get("MOMO_PARTNER_CODE").present?
+    end
+
     def has_payout_information?
       active_bank_account.present? || payment_address.present? || has_stripe_account_connected? || has_paypal_account_connected?
     end

@@ -589,7 +589,9 @@ class LinksController < ApplicationController
 
     def index_params
       @index_params ||= begin
-        permitted = params.permit(
+        # Ensure params is ActionController::Parameters for Strong Parameters support
+        controller_params = params.is_a?(ActionController::Parameters) ? params : ActionController::Parameters.new(params)
+        permitted = controller_params.permit(
           :query, :products_page, :memberships_page,
           :products_sort_key, :products_sort_direction,
           :memberships_sort_key, :memberships_sort_direction

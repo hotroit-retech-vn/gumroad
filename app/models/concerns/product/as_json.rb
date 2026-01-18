@@ -95,6 +95,7 @@ module Product::AsJson
         "deleted" => deleted_at.present?,
         "custom_fields" => custom_field_descriptors.as_json,
         "custom_summary" => custom_summary,
+        "supports_momo" => supports_momo?,
         "is_tiered_membership" => is_tiered_membership?,
         "recurrences" => is_tiered_membership? ? prices.alive.is_buy.map(&:recurrence).uniq : nil,
         "variants" => variant_categories_alive.map do |cat|

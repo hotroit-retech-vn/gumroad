@@ -64,6 +64,7 @@ export const CheckoutPreview = ({
             hasFreeTrial: false,
             nativeType: "digital",
             canGift: true,
+            supportsMomo: cartItem.product.supports_momo,
           },
         ],
         paypalClientId: "",

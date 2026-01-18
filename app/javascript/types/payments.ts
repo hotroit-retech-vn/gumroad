@@ -56,7 +56,7 @@ export type ComplianceInfo = {
   business_street_address_kana?: string | null;
 };
 
-export type PayoutMethod = "bank" | "card" | "paypal" | "stripe";
+export type PayoutMethod = "bank" | "card" | "paypal" | "stripe" | "momo";
 export type FormFieldName =
   | "first_name"
   | "last_name"
